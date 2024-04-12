@@ -7,9 +7,11 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -40,6 +42,7 @@ public class VocabularyFragment extends Fragment {
 
         vocabularyAdapter = new VocabularyAdapter();
         rvListaVocabs.setAdapter(vocabularyAdapter);
+        new ItemTouchHelper(itemTouchHelperCallback).attachToRecyclerView(rvListaVocabs);
 
         VocabularyViewModel viewModel = new ViewModelProvider(this).get(VocabularyViewModel.class);
         viewModel.init();
@@ -48,17 +51,17 @@ public class VocabularyFragment extends Fragment {
         viewModel.getElResultado().observe(getViewLifecycleOwner(), observerResultado);
 
         binding.buttonAgregar.setOnClickListener(view1 -> {
-            if(binding.textviewVocabulary.getText().toString().trim().length() > 0 && binding.textviewTranslate.getText().toString().trim().length() > 0) {
+            if(binding.edittextVocabulary.getText().toString().trim().length() > 0 && binding.edittextTranslate.getText().toString().trim().length() > 0) {
                 Vocabulary v = new Vocabulary();
-                v.setWord(binding.textviewVocabulary.getText().toString().trim());
-                v.setSpanishTranslation(binding.textviewTranslate.getText().toString().trim());
+                v.setWord(binding.edittextVocabulary.getText().toString().trim());
+                v.setSpanishTranslation(binding.edittextTranslate.getText().toString().trim());
                 viewModel.insertarListaVocabulary(v);
             }
 
         });
 
-        binding.textviewVocabulary.setText("");
-        binding.textviewTranslate.setText("");
+        binding.edittextVocabulary.setText("");
+        binding.edittextTranslate.setText("");
 
         viewModel.cargarListaVocabulary();
     }
@@ -68,6 +71,7 @@ public class VocabularyFragment extends Fragment {
         public void onChanged(List<Vocabulary> vocabularies) {
             if(vocabularies != null) {
                 vocabularyAdapter.addAll(vocabularies);
+                binding.textviewCount.setText("Vocabularies count: " + vocabularyAdapter.getItemCount());
             }
 
         }
@@ -76,18 +80,22 @@ public class VocabularyFragment extends Fragment {
     private Observer<Resultado<List<Vocabulary>>> observerResultado = new Observer<Resultado<List<Vocabulary>>>() {
         @Override
         public void onChanged(Resultado<List<Vocabulary>> listResultado) {
-            if(listResultado != null && listResultado.isAprobado()) {
-                Toast.makeText(getContext(), "Registrado", Toast.LENGTH_SHORT).show();
-                if(listResultado.getItem() != null) {
-                    List<Vocabulary> list = listResultado.getItem();
-                    vocabularyAdapter.addAll(list);
-                    vocabularyAdapter.notifyDataSetChanged();
+            if(listResultado != null) {
+                if(listResultado.isAprobado()) {
+                    Toast.makeText(getContext(), "Registrado", Toast.LENGTH_SHORT).show();
+                    if(listResultado.getItem() != null) {
+                        List<Vocabulary> list = listResultado.getItem();
+                        vocabularyAdapter.addAll(list);
+                        //vocabularyAdapter.notifyDataSetChanged();
+                    }
+                    binding.textviewCount.setText("Vocabularies count: " + vocabularyAdapter.getItemCount());
+                    binding.edittextVocabulary.setText("");
+                    binding.edittextTranslate.setText("");
+                } else {
+                    Toast.makeText(getContext(), "Error", Toast.LENGTH_SHORT).show();
                 }
-                binding.textviewVocabulary.setText("");
-                binding.textviewTranslate.setText("");
-            } else {
-                Toast.makeText(getContext(), "Error", Toast.LENGTH_SHORT).show();
             }
+
         }
     };
 
@@ -97,4 +105,36 @@ public class VocabularyFragment extends Fragment {
         binding = null;
     }
 
+    ItemTouchHelper.SimpleCallback itemTouchHelperCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
+        @Override
+        public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
+            return false;
+        }
+
+        @Override
+        public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
+            //PedidoApp pedidoApp = pedidoViewModel.getPedidoApp().getValue();
+
+            //if(pedidoApp == null) {
+            //    pedidoApp = new PedidoApp();
+            //    pedidoViewModel.getPedidoApp().setValue(pedidoApp);
+            //}
+            /*
+            if(pedidoApp.getListaPedidoAppSimpleDet() != null) {
+                try {
+                    PedidoAppDetalle pd = pedidoApp.getListaPedidoAppSimpleDet().get(viewHolder.getAbsoluteAdapterPosition());
+                    if(pd.getIdLocal() == 0) {
+                        pedidoApp.getListaPedidoAppSimpleDet().remove(viewHolder.getAbsoluteAdapterPosition());
+                        pedidoClienteAdapter.remove(viewHolder.getAbsoluteAdapterPosition());
+
+                        if(pedidoClienteAdapter.getItemCount() == 0) {
+                            contenedorMensaje.setVisibility(ConstraintLayout.VISIBLE);
+                        }
+                    }
+                } catch (Exception ex) {
+                }
+            }
+            */
+        }
+    };
 }

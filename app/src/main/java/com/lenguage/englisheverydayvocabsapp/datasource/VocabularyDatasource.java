@@ -49,9 +49,9 @@ public class VocabularyDatasource {
             List<Vocabulary> lista = new ArrayList<>();
             lista.add(data);
             if(res <= 0) {
-                resuVal = new Resultado<List<Vocabulary>>(false, "No se registró el vocabulario", Resultado.TIPO_INSERCION, lista);
+                resuVal = new Resultado<List<Vocabulary>>(false, "No se registró el vocabulario", Resultado.TIPO_INSERCION, null);
             } else {
-                resuVal = new Resultado<List<Vocabulary>>(true, "El vocabulario registró correctamente", Resultado.TIPO_INSERCION, null);
+                resuVal = new Resultado<List<Vocabulary>>(true, "El vocabulario registró correctamente", Resultado.TIPO_INSERCION, lista);
             }
 
             elResultado.postValue(resuVal);
